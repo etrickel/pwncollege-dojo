@@ -12,7 +12,7 @@ import urllib.request
 import yaml
 import requests
 from schema import Schema, Optional, Regex, Or, Use, SchemaError
-from flask import abort, g
+from flask import abort, g, redirect, url_for
 from sqlalchemy.orm.exc import NoResultFound
 from CTFd.models import db, Users, Challenges, Flags, Solves
 from CTFd.utils.user import get_current_user, is_admin
@@ -451,6 +451,9 @@ def dojo_route(func):
 
         dojo = dojo_accessible(bound_args.arguments["dojo"])
         if not dojo:
+            dojo_check = Dojos.from_id(bound_args.arguments["dojo"]).first()
+            if get_current_user() is None and  dojo_check is not None:
+                return redirect(url_for("auth.login"))
             abort(404)
         bound_args.arguments["dojo"] = dojo
         g.dojo = dojo
